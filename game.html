@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suburb RNG Game</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        #display-box {
+            height: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        #suburb-display {
+            font-size: 3.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(255,255,255,0.2);
+            transition: transform 0.1s ease;
+        }
+
+        #tier-display {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-top: 10px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        button {
+            background: linear-gradient(135deg, #ff007f, #7f00ff);
+            color: white;
+            border: none;
+            padding: 20px 50px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(127, 0, 255, 0.4);
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(127, 0, 255, 0.6);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        /* Rarity Styles & Custom Animations */
+        .tier-common { color: #b0bec5; }
+        .tier-uncommon { color: #00e676; }
+        .tier-rare { color: #29b6f6; }
+        
+        .tier-epic { 
+            color: #d500f9; 
+            animation: epic-flash 0.6s infinite alternate;
+        }
+        
+        .tier-ultra-rare { 
+            color: #ffea00; 
+            animation: ultra-flash 0.3s infinite alternate;
+            text-shadow: 0 0 30px #ffea00, 0 0 50px #ffea00;
+        }
+
+        @keyframes epic-flash {
+            0% { opacity: 0.4; transform: scale(0.98); }
+            100% { opacity: 1; transform: scale(1.02); }
+        }
+
+        @keyframes ultra-flash {
+            0% { opacity: 0.3; transform: scale(0.95); filter: hue-rotate(0deg); }
+            100% { opacity: 1; transform: scale(1.08); filter: hue-rotate(45deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="display-box">
+            <div id="suburb-display" class="tier-common">SPIN TO ROLL</div>
+            <div id="tier-display"></div>
+        </div>
+        
+        <button id="roll-btn">ROLL SUBURB</button>
+    </div>
+
+    <script>
+        const suburbsPool = {
+            "Common": [
+                "Broadmeadows", "Craigieburn", "Epping", "Roxburgh Park", 
+                "South Morang", "St Albans", "Sunbury", "Taylors Lakes", "Thomastown"
+            ],
+            "Uncommon": [
+                "Bundoora", "Doreen", "Glenroy", "Greenvale", "Lalor", 
+                "Meadow Heights", "Mernda", "Mickleham", "Mill Park", "Pascoe Vale", "Wollert"
+            ],
+            "Rare": [
+                "Attwood", "Campbellfield", "Coburg North", "Coolaroo", "Dallas", 
+                "Fawkner", "Gladstone Park", "Hadfield", "Jacana", "Keilor", 
+                "Keilor Downs", "Keilor East", "Keilor Park", "Oak Park", 
+                "Pascoe Vale South", "Tullamarine", "Westmeadows", "Whittlesea"
+            ],
+            "Epic": [
+                "Bulla", "Diggers Rest", "Donnybrook", "Gowanbrae", "Kalkallo", "Keilor Lodge"
+            ],
+            "Ultra Rare": [
+                "Clarkefield", "Melbourne Airport", "Oaklands Junction", "Somerton", "Wildwood", "Yuroke"
+            ]
+        };
+
+        const allSuburbs = Object.values(suburbsPool).flat();
+        const suburbDisplay = document.getElementById("suburb-display");
+        const tierDisplay = document.getElementById("tier-display");
+        const rollBtn = document.getElementById("roll-btn");
+
+        rollBtn.addEventListener("click", () => {
+            rollBtn.disabled = true;
+            let counter = 0;
+            
+            // Shuffling effect animation
+            const shuffleInterval = setInterval(() => {
+                const randomName = allSuburbs[Math.floor(Math.random() * allSuburbs.length)];
+                suburbDisplay.textContent = randomName;
+                suburbDisplay.className = "tier-common";
+                tierDisplay.textContent = "ROLLING...";
+                counter++;
+                
+                if (counter > 15) {
+                    clearInterval(shuffleInterval);
+                    determineFinalResult();
+                }
+            }, 70);
+        });
+
+        function determineFinalResult() {
+            const roll = Math.random() * 100;
+            let tier = "Common";
+
+            if (roll <= 50.0) tier = "Common";
+            else if (roll <= 80.0) tier = "Uncommon";
+            else if (roll <= 95.0) tier = "Rare";
+            else if (roll <= 99.5) tier = "Epic";
+            else tier = "Ultra Rare";
+
+            const tierList = suburbsPool[tier];
+            const finalSuburb = tierList[Math.floor(Math.random() * tierList.length)];
+
+            // Apply text and matching style class
+            suburbDisplay.textContent = finalSuburb;
+            suburbDisplay.className = "tier-" + tier.toLowerCase().replace(" ", "-");
+            
+            // Add visual anchors to status label based on class
+            if (tier === "Ultra Rare") {
+                tierDisplay.textContent = "✨ 👑 ULTRA RARE 👑 ✨";
+            } else if (tier === "Epic") {
+                tierDisplay.textContent = "🔮 EPIC 🔮";
+            } else if (tier === "Rare") {
+                tierDisplay.textContent = "💎 RARE 💎";
+            } else if (tier === "Uncommon") {
+                tierDisplay.textContent = "🟢 UNCOMMON 🟢";
+            } else {
+                tierDisplay.textContent = "⚪ COMMON ⚪";
+            }
+
+            rollBtn.disabled = false;
+        }
+    </script>
+</body>
+</html>
